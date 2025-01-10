@@ -10,11 +10,33 @@ from pydantic import BaseModel, Field
 from langchain_core.tools import StructuredTool
 from langchain.agents import AgentExecutor, create_openai_functions_agent
 from langchain import hub
+<<<<<<< HEAD
+=======
+from langchain_community.chat_message_histories import ChatMessageHistory
+from langchain_core.chat_history import BaseChatMessageHistory
+from langchain_core.runnables.history import RunnableWithMessageHistory
+>>>>>>> c97c34b (hw01 and hw02)
 
 gpt_chat_version = 'gpt-4o'
 gpt_config = get_model_configuration(gpt_chat_version)
+store = {}
+llm = AzureChatOpenAI(
+        model=gpt_config['model_name'],
+        deployment_name=gpt_config['deployment_name'],
+        openai_api_key=gpt_config['api_key'],
+        openai_api_version=gpt_config['api_version'],
+        azure_endpoint=gpt_config['api_base'],
+        temperature=gpt_config['temperature']
+    )
+
+
+def get_session_history(session_id: str) -> BaseChatMessageHistory:
+    if session_id not in store:
+        store[session_id] = ChatMessageHistory()
+    return store[session_id]
 
 def generate_hw01(question):
+<<<<<<< HEAD
     llm = AzureChatOpenAI(
             model=gpt_config['model_name'],
             deployment_name=gpt_config['deployment_name'],
@@ -24,6 +46,8 @@ def generate_hw01(question):
             temperature=gpt_config['temperature']
     )
 
+=======
+>>>>>>> c97c34b (hw01 and hw02)
     response_schemas = [
         ResponseSchema(
             name="date",
@@ -62,6 +86,7 @@ class GetHoliday(BaseModel):
     month: int = Field(..., description="specific month")
 
 def generate_hw02(question):
+<<<<<<< HEAD
     llm = AzureChatOpenAI(
             model=gpt_config['model_name'],
             deployment_name=gpt_config['deployment_name'],
@@ -70,6 +95,8 @@ def generate_hw02(question):
             azure_endpoint=gpt_config['api_base'],
             temperature=gpt_config['temperature']
     )
+=======
+>>>>>>> c97c34b (hw01 and hw02)
     instructions = "You are an agent."
     base_prompt = hub.pull("langchain-ai/openai-functions-template")
     prompt = base_prompt.partial(instructions=instructions)
@@ -86,7 +113,17 @@ def generate_hw02(question):
         tools=tools,
         verbose=True,
     )
+<<<<<<< HEAD
     response = agent_executor.invoke({"input":question}).get('output')
+=======
+    agent_with_chat_history = RunnableWithMessageHistory(
+        agent_executor,
+        get_session_history,
+        input_messages_key="input",
+        history_messages_key="chat_history",
+    )
+    response = agent_with_chat_history.invoke({"input":question}, config={"configurable": {"session_id": "<foo>"}}).get('output')
+>>>>>>> c97c34b (hw01 and hw02)
     
     response_schemas = [
         ResponseSchema(
@@ -109,6 +146,7 @@ def generate_hw02(question):
     return response
     
 def generate_hw03(question2, question3):
+
     pass
     
 def generate_hw04(question):
@@ -157,4 +195,8 @@ def result(llm, data):
     response = llm.invoke(prompt.invoke(input = response)).content
     return response
 
+<<<<<<< HEAD
 print(generate_hw01("2024年台灣10月紀念日有哪些?"))
+=======
+print(generate_hw02("2024年台灣10月紀念日有哪些?"))
+>>>>>>> c97c34b (hw01 and hw02)
