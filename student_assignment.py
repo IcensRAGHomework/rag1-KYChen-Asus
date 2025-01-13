@@ -160,7 +160,8 @@ def generate_hw03(question2, question3):
     response_schemas = [
         ResponseSchema(
             name="add",
-            description="該紀念日是否需要加入先前的清單內,若月份相同且該紀念日不被包含在清單內,則回'true',否則為'false',只能是這兩種答案,答案為全小寫"),
+            description="該紀念日是否需要加入先前的清單內,若月份相同且該紀念日不被包含在清單內,則回true,否則為false",
+            type = "boolean"),
         ResponseSchema(
             name="reason",
             description="決定該紀念日是否加入清單的理由")
@@ -272,5 +273,5 @@ def local_image_to_data_url():
     return f"data:{mime_type};base64,{base64_encoded_data}"
 
 # print(generate_hw01('2024年台灣10月紀念日有哪些?'))
-# print(generate_hw03('2024年台灣10月紀念日有哪些?', '根據先前的節日清單，這個節日{"date": "10-31", "name": "蔣公誕辰紀念日"}是否有在該月份清單？'))
+print(generate_hw03('2024年台灣10月紀念日有哪些?', '根據先前的節日清單，這個節日{"date": "10-31", "name": "蔣公誕辰紀念日"}是否有在該月份清單？'))
 # print(generate_hw04('請問中華台北的積分是多少'))
