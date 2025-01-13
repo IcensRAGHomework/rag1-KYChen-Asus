@@ -1,4 +1,6 @@
 import requests
+import base64
+from mimetypes import guess_type
 
 from model_configurations import get_model_configuration
 
@@ -123,11 +125,93 @@ def generate_hw02(question):
     return response
     
 def generate_hw03(question2, question3):
+    generate_hw02(question2)
+    llm = AzureChatOpenAI(
+        model=gpt_config['model_name'],
+        deployment_name=gpt_config['deployment_name'],
+        openai_api_key=gpt_config['api_key'],
+        openai_api_version=gpt_config['api_version'],
+        azure_endpoint=gpt_config['api_base'],
+        temperature=gpt_config['temperature']
+    )
+    instructions = "You are an agent."
+    base_prompt = hub.pull("langchain-ai/openai-functions-template")
+    prompt = base_prompt.partial(instructions=instructions)
+    tool = StructuredTool.from_function(
+        name="get_holiday",
+        description="Fetch holidays for specific year and month",
+        func=get_holiday,
+        args_schema=GetHoliday,
+    )
+    tools = [tool]
+    agent = create_openai_functions_agent(llm, tools, prompt)
+    agent_executor = AgentExecutor(
+        agent=agent,
+        tools=tools,
+        verbose=True,
+    )
+    agent_with_chat_history = RunnableWithMessageHistory(
+        agent_executor,
+        get_session_history,
+        input_messages_key="input",
+        history_messages_key="chat_history",
+    )
 
-    pass
+    response_schemas = [
+        ResponseSchema(
+            name="add",
+            description="該紀念日是否需要加入先前的清單內,若月份相同且該紀念日不被包含在清單內,則回true,否則為false,只能是這兩種答案"),
+        ResponseSchema(
+            name="reason",
+            description="決定該紀念日是否加入清單的理由")
+    ]
+    output_parser = StructuredOutputParser(response_schemas=response_schemas)
+    format_instructions = output_parser.get_format_instructions()
+    prompt = ChatPromptTemplate.from_messages([
+        ("system","使用台灣語言並回答問題,{format_instructions}"),
+        ("human","{question}")
+        ])
+    prompt = prompt.partial(format_instructions=format_instructions)
+    response = agent_with_chat_history.invoke({"input":prompt.format(question=question3)}, config={"configurable": {"session_id": "<foo>"}}).get('output')
+    response = result(llm, response)
+    return response
     
 def generate_hw04(question):
-    pass
+    llm = AzureChatOpenAI(
+        model=gpt_config['model_name'],
+        deployment_name=gpt_config['deployment_name'],
+        openai_api_key=gpt_config['api_key'],
+        openai_api_version=gpt_config['api_version'],
+        azure_endpoint=gpt_config['api_base'],
+        temperature=gpt_config['temperature']
+    )
+    image_url = local_image_to_data_url()
+    response_schemas = [
+        ResponseSchema(
+            name="score",
+            description="圖片文字表格中顯示的指定隊伍的積分數")
+    ]
+    output_parser = StructuredOutputParser(response_schemas=response_schemas)
+    format_instructions = output_parser.get_format_instructions()
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system", "辨識圖片中的文字表格,{format_instructions}"),
+            (
+                "user",
+                [
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": image_url},
+                    }
+                ],
+            ),
+            ("human", "{question}")
+        ]
+    )
+    prompt = prompt.partial(format_instructions=format_instructions)
+    response = llm.invoke(prompt.format(question=question)).content
+    response = result(llm, response)
+    return response
     
 def demo(question):
     llm = AzureChatOpenAI(
@@ -172,4 +256,20 @@ def result(llm, data):
     response = llm.invoke(prompt.invoke(input = response)).content
     return response
 
-# print(generate_hw02("2024年台灣10月紀念日有哪些?"))
+def local_image_to_data_url():
+    # Example usage
+    image_path = 'baseball.png'
+    # Guess the MIME type of the image based on the file extension
+    mime_type, _ = guess_type(image_path)
+    if mime_type is None:
+        mime_type = 'application/octet-stream'  # Default MIME type if none is found
+
+    # Read and encode the image file
+    with open(image_path, "rb") as image_file:
+        base64_encoded_data = base64.b64encode(image_file.read()).decode('utf-8')
+
+    # Construct the data URL
+    return f"data:{mime_type};base64,{base64_encoded_data}"
+
+question3 = "根據先前的節日清單，這個節日{'date': '10-31', 'name': '蔣公誕辰紀念日'}是否有在該月份清單？"
+print(generate_hw04('請問中華台北的積分是多少'))
