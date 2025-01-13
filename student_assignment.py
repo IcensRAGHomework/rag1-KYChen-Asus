@@ -271,5 +271,3 @@ def local_image_to_data_url():
     # Construct the data URL
     return f"data:{mime_type};base64,{base64_encoded_data}"
 
-question3 = "根據先前的節日清單，這個節日{'date': '10-31', 'name': '蔣公誕辰紀念日'}是否有在該月份清單？"
-print(generate_hw04('請問中華台北的積分是多少'))
