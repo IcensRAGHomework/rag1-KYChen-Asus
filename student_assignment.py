@@ -1,7 +1,6 @@
 import requests
 import base64
 from mimetypes import guess_type
-from PIL import Image
 
 from model_configurations import get_model_configuration
 
@@ -187,7 +186,6 @@ def generate_hw04(question):
         temperature=gpt_config['temperature']
     )
     image_url = local_image_to_data_url()
-    print(len(image_url))
     response_schemas = [
         ResponseSchema(
             name="score",
