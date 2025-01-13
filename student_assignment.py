@@ -1,6 +1,7 @@
 import requests
 import base64
 from mimetypes import guess_type
+from PIL import Image
 
 from model_configurations import get_model_configuration
 
@@ -160,7 +161,7 @@ def generate_hw03(question2, question3):
     response_schemas = [
         ResponseSchema(
             name="add",
-            description="該紀念日是否需要加入先前的清單內,若月份相同且該紀念日不被包含在清單內,則回true,否則為false,只能是這兩種答案"),
+            description="該紀念日是否需要加入先前的清單內,若月份相同且該紀念日不被包含在清單內,則回'true',否則為'false',只能是這兩種答案,答案為全小寫"),
         ResponseSchema(
             name="reason",
             description="決定該紀念日是否加入清單的理由")
@@ -186,6 +187,7 @@ def generate_hw04(question):
         temperature=gpt_config['temperature']
     )
     image_url = local_image_to_data_url()
+    print(len(image_url))
     response_schemas = [
         ResponseSchema(
             name="score",
@@ -211,7 +213,7 @@ def generate_hw04(question):
     prompt = prompt.partial(format_instructions=format_instructions)
     response = llm.invoke(prompt.format(question=question)).content
     response = result(llm, response)
-    return response
+    return "prompt"
     
 def demo(question):
     llm = AzureChatOpenAI(
@@ -258,7 +260,7 @@ def result(llm, data):
 
 def local_image_to_data_url():
     # Example usage
-    image_path = 'baseball.png'
+    image_path = './baseball.png'
     # Guess the MIME type of the image based on the file extension
     mime_type, _ = guess_type(image_path)
     if mime_type is None:
@@ -271,3 +273,6 @@ def local_image_to_data_url():
     # Construct the data URL
     return f"data:{mime_type};base64,{base64_encoded_data}"
 
+# print(generate_hw01('2024年台灣10月紀念日有哪些?'))
+# print(generate_hw03('2024年台灣10月紀念日有哪些?', '根據先前的節日清單，這個節日{"date": "10-31", "name": "蔣公誕辰紀念日"}是否有在該月份清單？'))
+# print(generate_hw04('請問中華台北的積分是多少'))
