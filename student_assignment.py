@@ -191,7 +191,8 @@ def generate_hw04(question):
     response_schemas = [
         ResponseSchema(
             name="score",
-            description="圖片文字表格中顯示的指定隊伍的積分數")
+            description="圖片文字表格中顯示的指定隊伍的積分數",
+            type="integer")
     ]
     output_parser = StructuredOutputParser(response_schemas=response_schemas)
     format_instructions = output_parser.get_format_instructions()
