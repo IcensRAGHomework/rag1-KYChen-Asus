@@ -15,6 +15,7 @@ from langchain import hub
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_core.runnables.history import RunnableWithMessageHistory
+from langchain.schema import AIMessage, HumanMessage, SystemMessage
 
 gpt_chat_version = 'gpt-4o'
 gpt_config = get_model_configuration(gpt_chat_version)
@@ -210,10 +211,10 @@ def generate_hw04(question):
         ]
     )
     prompt = prompt.partial(format_instructions=format_instructions)
-    response = llm.invoke(prompt.format(question=question)).content
+    response = llm.invoke(prompt.format_messages(question=question)).content
     response = result(llm, response)
-    return "prompt"
-    
+    return response
+
 def demo(question):
     llm = AzureChatOpenAI(
             model=gpt_config['model_name'],
@@ -274,4 +275,4 @@ def local_image_to_data_url():
 
 # print(generate_hw01('2024年台灣10月紀念日有哪些?'))
 # print(generate_hw03('2024年台灣10月紀念日有哪些?', '根據先前的節日清單，這個節日{"date": "10-31", "name": "蔣公誕辰紀念日"}是否有在該月份清單？'))
-# print(generate_hw04('請問中華台北的積分是多少'))
+print(generate_hw04('請問中華台北的積分是多少'))
