@@ -14,9 +14,7 @@ from langchain_core.tools import StructuredTool
 from langchain.agents import AgentExecutor, create_openai_functions_agent
 from langchain import hub
 from langchain_community.chat_message_histories import ChatMessageHistory
-from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_core.runnables.history import RunnableWithMessageHistory
-from langchain.schema import AIMessage, HumanMessage, SystemMessage
 
 gpt_chat_version = 'gpt-4o'
 gpt_config = get_model_configuration(gpt_chat_version)
@@ -98,9 +96,34 @@ def get_result_output(llm: BaseChatModel, data: str):
     prompt = prompt.partial(format_instructions=format_instructions)
     response = llm.invoke(prompt.format_messages(question=data)).content
 
+    examples = [
+        {"input": """```json
+                    {
+                            "Result": [
+                                    content
+                            ]
+                    }
+                    ```""",
+        "output": """{
+                            "Result": [
+                                    content
+                            ]
+                    }"""}
+    ]
+    example_prompt = ChatPromptTemplate.from_messages(
+        [
+            ("human", "{input}"),
+            ("ai", "{output}"),
+        ]
+    )
+    few_shot_prompt = FewShotChatMessagePromptTemplate(
+        example_prompt=example_prompt,
+        examples=examples,
+    )
     prompt = ChatPromptTemplate.from_messages(
         [
-            ("system", "將我提供的文字進行處理，若第一行內容為'```json'，將第一行移除"),
+            ("system", "將我提供的文字進行處理"),
+            few_shot_prompt,
             ("human", "{input}"),
         ]
     )
@@ -217,6 +240,6 @@ def demo(question):
     return response
 
 
-# print(generate_hw01("2024年台灣10月紀念日有哪些?"))
+print(generate_hw01("2024年台灣10月紀念日有哪些?"))
 # print(generate_hw03('2024年台灣10月紀念日有哪些?', '根據先前的節日清單，這個節日{"date": "10-31", "name": "蔣公誕辰紀念日"}是否有在該月份清單？'))
-print(generate_hw04('請問中華台北的積分是多少'))
+# print(generate_hw04('請問中華台北的積分是多少'))
